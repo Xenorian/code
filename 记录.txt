@@ -1,0 +1,19 @@
+1. 按上下箭头切换同一个文件夹中的不同图片 : `std::filesystem`
+键盘回调切换图片
+程序输入变成目录了
+2. 在点之间要联线，便于识别轮廓; 
+api画点的时候画线
+3. 修改mask: 添加, 删除
+输出文件的格式 
+pixel-map txt
+poly list json
+修改：支持文件修改保存
+imgui获取poly信息，imgui::text显示该信息
+imgui输出框，输入数字，自动显示英文label
+
+
+对于每张图片，输出一个对应的文本文件+多边形列表信息，再次读入图片的时候把文本文件读入，用来初始化内存里的数据结构。在imgui维护多边形列表，点击删除。
+
+4. 不同mask区域，他的label是什么，英文名称: 暂定`imgui`或`opencv`
+imgui::showdemo 可以显示图例+label
+

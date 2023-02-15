@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/home/acoustic/cad/Label/code/build",
+  "command": "/usr/bin/clang++-14 -isystem /usr/include/opencv4 -g -o CMakeFiles/Label.dir/main.cpp.o -c /home/acoustic/cad/Label/code/main.cpp",
+  "file": "/home/acoustic/cad/Label/code/main.cpp"
+}
+]
