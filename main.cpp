@@ -283,7 +283,7 @@ void init_img(const std::string &filename, Img &img) {
   char *Buffer = new char[img.pixel_type.size()];
   memset(Buffer, 0, sizeof(char) * img.pixel_type.size());
 
-  infile = fopen((filename + "pixel_map.txt").c_str(), "r");
+  infile = fopen(("../data/" + filename + "pixel_map.txt").c_str(), "r");
   if (!infile) {
     std::cout << "no pixel_map.txt" << std::endl;
   } else {
@@ -300,7 +300,7 @@ void init_img(const std::string &filename, Img &img) {
   // read poly-list: json格式
   // type:[[point1,point2...],[]...]
   Json::Reader reader;
-  std::ifstream ifile(filename + "poly-list.json", std::ios::binary);
+  std::ifstream ifile("../data/" + filename + "poly-list.json", std::ios::binary);
   if (!ifile.is_open()) {
     std::cout << filename << ": no poly-list " << std::endl;
     return;
