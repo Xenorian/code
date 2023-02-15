@@ -7,7 +7,6 @@ include_directories(${CMAKE_SOURCE_DIR}/includes/imgui)
 include_directories(${CMAKE_SOURCE_DIR}/includes/imgui/backends/)
 link_directories(".")
 
-set (CMAKE_CXX_COMPILER "/usr/bin/clang++-10")
 find_package(OpenCV REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
