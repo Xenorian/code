@@ -416,10 +416,16 @@ int main(int argc, const char **argv) {
       ImGui::Begin("Img Info");
       const std::string name = "delete##";
       for (int i = 0; i < img.poly_list.size(); i++) {
+        ImGui::PushID(i);
+        ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, 0.7f, 0.7f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));
         if (ImGui::Button((name + std::to_string(i)).c_str())) {
           img.delete_poly(i);
           // std::cout << "delete!" << i << std::endl;
         }
+        ImGui::PopStyleColor(3);
+        ImGui::PopID();
       }
       ImGui::End();
     }
