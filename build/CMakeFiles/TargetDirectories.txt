@@ -1,3 +1,0 @@
-/home/acoustic/cad/Label/code/build/CMakeFiles/Label.dir
-/home/acoustic/cad/Label/code/build/CMakeFiles/edit_cache.dir
-/home/acoustic/cad/Label/code/build/CMakeFiles/rebuild_cache.dir
