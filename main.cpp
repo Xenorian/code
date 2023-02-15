@@ -1,6 +1,7 @@
 #include <opencv2/highgui/highgui_c.h>
 #include <chrono>
 #include <cstdio>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <opencv2/opencv.hpp>
@@ -112,15 +113,14 @@ void init_img(const std::string &filename, Img &img) {
 
   // read image
   img.content = cv::imread(filename);
-  // read pixel - type: files+pmap.txt
-
-  // read poly-list: json格式
-  // read image
-  cv::Mat img = cv::imread(files[0]);
-  if (!img.data) {
+  if (!img.content.data) {
     std::cerr << "invalid picture path" << std::endl;
     return 1;
   }
+  // read pixel - type: files+pmap.txt
+  
+
+  // read poly-list: json格式
 
   // read pixel - type: files+pmap.txt
   std::vector<int> pixel_type(img.rows * img.cols, 0);
