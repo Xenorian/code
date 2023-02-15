@@ -135,6 +135,7 @@ void init_img(const std::string &filename, Img &img) {
   }
   delete[] Buffer;
   // read poly-list: json格式
+  
 }
 void get_files(std::string dir, std::vector<std::string> &files) {
   // todo::拿到所有文件
