@@ -262,6 +262,7 @@ int main(int argc, const char **argv) {
   // img now
   Img img;
   img.content = cv::imread(argv[1]);
+  cv::cvtColor(img.content, img.content, cv::COLOR_BGR2RGBA);
 
   glfwSetErrorCallback(glfw_error_callback);
   if (!glfwInit()) return 1;
