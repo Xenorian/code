@@ -112,30 +112,30 @@ void init_img(const std::string &filename, Img &img) {
   // todo::初始化img
   img.file = filename;
 
-// read image
-img.content = cv::imread(filename);
-if (!img.content.data) {
-  std::cerr << "invalid picture path" << std::endl;
-  exit(1);
-}
-// read pixel - type: files+pmap.txt
-img.pixel_type.resize(img.content.rows * img.content.cols);
-std::cout << filename << ": size = " << img.content.cols << " * " << img.content.rows << std::endl;
+  // read image
+  img.content = cv::imread(filename);
+  if (!img.content.data) {
+    std::cerr << "invalid picture path" << std::endl;
+    exit(1);
+  }
+  // read pixel - type: files+pmap.txt
+  img.pixel_type.resize(img.content.rows * img.content.cols);
+  std::cout << filename << ": size = " << img.content.cols << " * " << img.content.rows << std::endl;
 
-FILE *ifile = NULL;
-char *Buffer = new char[img.pixel_type.size()];
-memset(Buffer, '0', sizeof(char) * img.pixel_type.size());
+  FILE *ifile = NULL;
+  char *Buffer = new char[img.pixel_type.size()];
+  memset(Buffer, '0', sizeof(char) * img.pixel_type.size());
 
-int cnt = 0;
-int i = 0;
-ifile = fopen((filename + "pmap.txt").c_str(), "r");
+  int cnt = 0;
+  int i = 0;
+  ifile = fopen((filename + "pmap.txt").c_str(), "r");
 
-fwrite(Buffer, sizeof(char), img.pixel_type.size(), ifile);
-for (int i = 0; i < img.pixel_type.size(); i++) {
-  img.pixel_type[i] = Buffer[i];
-}
-delete[] Buffer;
-// read poly-list: json格式
+  fwrite(Buffer, sizeof(char), img.pixel_type.size(), ifile);
+  for (int i = 0; i < img.pixel_type.size(); i++) {
+    img.pixel_type[i] = Buffer[i];
+  }
+  delete[] Buffer;
+  // read poly-list: json格式
 }
 void get_files(std::string dir, std::vector<std::string> &files) {
   files.clear();
@@ -150,9 +150,10 @@ void get_files(std::string dir, std::vector<std::string> &files) {
 
   // 文件路径肯定不一样，不用纠结稳定性的问题
   std::sort(files.begin(), files.end());
-  for (auto &a : files) {
-    std::cout << a << std::endl;
-  }
+
+  // for (auto &a : files) {
+  //   std::cout << a << std::endl;
+  // }
 }
 int main(int argc, const char **argv) {
   if (argc != 2) {
@@ -188,10 +189,10 @@ int main(int argc, const char **argv) {
       record_pixel_type(img.content, img.pixel_type, type);
       control_points.clear();
     }
-    // 上下键切换图片
-    if (key == ' ') {
+    // IK键切换图片, I上 K下
+    if (key == 'i') {
     }
-    if (key == ' ') {
+    if (key == 'k') {
     }
   }
 
