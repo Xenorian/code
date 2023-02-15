@@ -42,6 +42,19 @@ void Img::add_poly() {
 }
 void Img::output() {
   // pixel type map
+  FILE *ofile = NULL;
+  char *Buffer = new char[pixel_type.size()];
+  memset(Buffer, 0, sizeof(char) * pixel_type.size());
+
+  ofile = fopen((file + "pixel_map.txt").c_str(), "w");
+
+  for (int i = 0; i < pixel_type.size(); i++) {
+    Buffer[i] = pixel_type[i];
+  }
+  fwrite(Buffer, sizeof(char), pixel_type.size(), ofile);
+  fclose(ofile);
+  delete[] Buffer;
+
   // json for poly-list
   Json::Value root;
   Json::Value poly;
@@ -192,6 +205,24 @@ void init_img(const std::string &filename, Img &img) {
     exit(1);
   }
   // read pixel - type: files+pmap.txt
+  img.pixel_type.resize(img.content.rows * img.content.cols);
+  FILE *infile = NULL;
+  char *Buffer = new char[img.pixel_type.size()];
+  memset(Buffer, 0, sizeof(char) * img.pixel_type.size());
+
+  infile = fopen((filename + "pixel_map.txt").c_str(), "r");
+  if (!infile) {
+    std::cout << "no pixel_map.txt" << std::endl;
+  } else {
+    fread(Buffer, sizeof(char), img.pixel_type.size(), infile);
+    fclose(infile);
+  }
+
+  for (int i = 0; i < img.pixel_type.size(); i++) {
+    Buffer[i] = img.pixel_type[i];
+  }
+
+  delete[] Buffer;
 
   // read poly-list: json格式
   // type:[[point1,point2...],[]...]
@@ -399,29 +430,4 @@ int main(int argc, const char **argv) {
   glfwTerminate();
 
   exit(0);
-
-  // write file
-  {
-    FILE *ofile = NULL;
-    char *Buffer = new char[img.pixel_type.size() * 10];
-    memset(Buffer, '0', sizeof(char) * img.pixel_type.size() * 10);
-
-    int cnt = 0;
-    int i = 0;
-    ofile = fopen("output.txt", "w");
-
-    for (; cnt < img.pixel_type.size(); cnt++) {
-      Buffer[i] = '0' + img.pixel_type[cnt];
-      i++;
-      if (cnt % img.content.cols == img.content.cols - 1) {
-        Buffer[i] = '\n';
-        i++;
-      }
-    }
-    fwrite(Buffer, sizeof(char), i, ofile);
-    fclose(ofile);
-    delete[] Buffer;
-  }
-
-  return 0;
 }
