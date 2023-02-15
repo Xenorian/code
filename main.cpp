@@ -34,6 +34,8 @@ class Img {
   void write_file(const std::string &content, const std::string &filename);
   void add_poly(int type);
   void output();
+  ImVec2 window_pos;
+  ImVec2 window_size;
 };
 
 void Img::delete_poly(int index) {
@@ -108,11 +110,19 @@ Img img;
 ImGuiIO *io = nullptr;
 
 void mouse_handler(GLFWwindow *window, int button, int action, int mods) {
+  static double ox, oy;
   if (action == GLFW_PRESS) {
-    std::cout << "Left button of the mouse is clicked - position (" << io->MousePos.x << ", " << io->MousePos.y << ")"
-              << '\n';
-
-    control_points.emplace_back(io->MousePos.x, io->MousePos.y);
+    ox = io->MousePos.x;
+    oy = io->MousePos.y;
+  } else if (action == GLFW_RELEASE) {
+    if (io->MousePos.x == ox && io->MousePos.y == oy) {
+      if (io->MousePos.x - img.window_pos.x >= 0 && io->MousePos.x - img.window_pos.x <= img.window_size.x &&
+          io->MousePos.y - img.window_pos.y >= 0 && io->MousePos.y - img.window_pos.y <= img.window_size.y) {
+        std::cout << "Left button of the mouse is clicked - position (" << io->MousePos.x - img.window_pos.x << ", "
+                  << io->MousePos.y - img.window_pos.y << ")" << '\n';
+        control_points.emplace_back(io->MousePos.x, io->MousePos.y);
+      }
+    }
   }
 }
 
@@ -399,6 +409,9 @@ int main(int argc, const char **argv) {
     // 图片窗口
     {
       ImGui::Begin("img");  // Create a window called "Hello, world!" and append into it.
+
+      img.window_pos = ImGui::GetWindowPos();
+      img.window_size = ImGui::GetWindowSize();
       GLuint texture;
       glGenTextures(1, &texture);
       glBindTexture(GL_TEXTURE_2D, texture);
