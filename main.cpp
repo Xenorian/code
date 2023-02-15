@@ -90,7 +90,7 @@ void Img::output() {
   char *Buffer = new char[pixel_type.size()];
   memset(Buffer, 0, sizeof(char) * pixel_type.size());
 
-  ofile = fopen(("../data/" + file + "pixel_map.txt").c_str(), "w");
+  ofile = fopen(("../data/" + std::to_string(index) + "pixel_map.txt").c_str(), "w");
 
   for (int i = 0; i < pixel_type.size(); i++) {
     Buffer[i] = pixel_type[i];
@@ -117,7 +117,7 @@ void Img::output() {
 
   Json::FastWriter writer;
   std::string poly_list_str = writer.write(root);
-  write_file(poly_list_str, "../data/" + file + "poly_list.json");
+  write_file(poly_list_str, "../data/" + std::to_string(index) + "poly_list.json");
 }
 void Img::write_file(const std::string &content, const std::string &filename) {
   FILE *ofile = NULL;
@@ -283,7 +283,7 @@ void init_img(const std::string &filename, Img &img) {
   char *Buffer = new char[img.pixel_type.size()];
   memset(Buffer, 0, sizeof(char) * img.pixel_type.size());
 
-  infile = fopen(("../data/" + filename + "pixel_map.txt").c_str(), "r");
+  infile = fopen(("../data/" + std::to_string(img.index) + "pixel_map.txt").c_str(), "r");
   if (!infile) {
     std::cout << "no pixel_map.txt" << std::endl;
   } else {
@@ -300,7 +300,7 @@ void init_img(const std::string &filename, Img &img) {
   // read poly-list: json格式
   // type:[[point1,point2...],[]...]
   Json::Reader reader;
-  std::ifstream ifile("../data/" + filename + "poly-list.json", std::ios::binary);
+  std::ifstream ifile("../data/" + std::to_string(img.index) + "poly-list.json", std::ios::binary);
   if (!ifile.is_open()) {
     std::cout << filename << ": no poly-list " << std::endl;
     return;
