@@ -116,10 +116,11 @@ void mouse_handler(GLFWwindow *window, int button, int action, int mods) {
     oy = io->MousePos.y;
   } else if (action == GLFW_RELEASE) {
     if (io->MousePos.x == ox && io->MousePos.y == oy) {
-      if (io->MousePos.x - img.window_pos.x >= 0 && io->MousePos.x - img.window_pos.x <= img.window_size.x &&
-          io->MousePos.y - img.window_pos.y >= 0 && io->MousePos.y - img.window_pos.y <= img.window_size.y) {
-        std::cout << "Left button of the mouse is clicked - position (" << io->MousePos.x - img.window_pos.x << ", "
-                  << io->MousePos.y - img.window_pos.y << ")" << '\n';
+      double relative_x = io->MousePos.x - img.window_pos.x;
+      double relative_y = io->MousePos.y - img.window_pos.y - 18;
+      if (relative_x >= 0 && relative_x <= img.window_size.x && relative_y >= 0 && relative_y <= img.window_size.y) {
+        std::cout << "Left button of the mouse is clicked - position (" << relative_x << ", " << relative_y << ")"
+                  << '\n';
         control_points.emplace_back(io->MousePos.x, io->MousePos.y);
       }
     }
@@ -310,7 +311,6 @@ int main(int argc, const char **argv) {
   // get_files(dir, files);
 
   // img now
-  Img img;
   img.content = cv::imread(argv[1]);
   cv::cvtColor(img.content, img.content, cv::COLOR_BGR2RGBA);
 
