@@ -4,6 +4,7 @@ project(Label)
 include_directories("${PROJECT_SOURCE_DIR}/includes")
 include_directories(${CMAKE_SOURCE_DIR}/includes)
 include_directories(${CMAKE_SOURCE_DIR}/includes/imgui)
+include_directories(${CMAKE_SOURCE_DIR}/includes/imgui/backends/)
 
 find_package(OpenCV REQUIRED)
 find_package(OpenGL REQUIRED)
@@ -15,4 +16,4 @@ add_subdirectory(./includes/imgui)
 
 add_executable(Label main.cpp)
 
-target_link_libraries(Label ${OpenCV_LIBRARIES} OpenGL::GL glfw)
+target_link_libraries(Label ${OpenCV_LIBRARIES} OpenGL::GL glfw imgui_lib)
