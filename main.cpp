@@ -257,7 +257,7 @@ int main(int argc, const char **argv) {
   std::string dir = argv[1];
   std::vector<std::string> files;
 
-  get_files(dir, files);
+  // get_files(dir, files);
 
   // img now
   Img img;
