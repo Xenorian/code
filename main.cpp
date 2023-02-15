@@ -16,6 +16,7 @@
 #define GL_SILENCE_DEPRECATION
 
 #include <GLFW/glfw3.h>  // Will drag system OpenGL headers
+
 class Poly {
  public:
   int label;
@@ -72,12 +73,37 @@ void write_file(const std::string &content, const std::string &filename) {
   fclose(ofile);
   delete[] Buffer;
 }
-std::vector<cv::Point2f> control_points;
+void get_files(std::string dir, std::vector<std::string> &files);
+int intersect(const cv::Point2f &a, const cv::Point2f &b, const cv::Point2f &c);
+bool inside_circle(const std::vector<cv::Point2f> &control_points, const cv::Point2f &point);
+void record_pixel_type(const cv::Mat &img, std::vector<int> &res, int type);
+void init_img(const std::string &filename, Img &img);
 
-void mouse_handler(int event, int x, int y, int flags, void *userdata) {
-  if (event == cv::EVENT_LBUTTONDOWN) {
-    std::cout << "Left button of the mouse is clicked - position (" << x << ", " << y << ")" << '\n';
-    control_points.emplace_back(x + 0.5, y + 0.5);
+Img img;
+
+std::vector<cv::Point2f> control_points;
+ImGuiIO *io = nullptr;
+
+void mouse_handler(GLFWwindow *window, int button, int action, int mods) {
+  if (action == GLFW_PRESS) {
+    std::cout << "Left button of the mouse is clicked - position (" << io->MousePos.x << ", " << io->MousePos.y << ")"
+              << '\n';
+    control_points.emplace_back(io->MousePos.x, io->MousePos.y);
+  }
+}
+
+void keyboard_handler(GLFWwindow *window, int key, int scancode, int action, int mods) {
+  if (action == GLFW_PRESS) {
+    if (key == GLFW_KEY_UP) {
+    } else if (key == GLFW_KEY_DOWN) {
+    } else if (key == GLFW_KEY_S) {
+      // 保存
+      std::cout << "record type" << std::endl;
+      int type = -1;
+      std::cin >> type;
+      record_pixel_type(img.content, img.pixel_type, type);
+      control_points.clear();
+    }
   }
 }
 
@@ -220,31 +246,16 @@ int main(int argc, const char **argv) {
   // glfwSetErrorCallback(glfw_error_callback);
   if (!glfwInit()) return 1;
 
-    // Decide GL+GLSL versions
-#if defined(IMGUI_IMPL_OPENGL_ES2)
-  // GL ES 2.0 + GLSL 100
-  const char *glsl_version = "#version 100";
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-  glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
-#elif defined(__APPLE__)
-  // GL 3.2 + GLSL 150
-  const char *glsl_version = "#version 150";
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // Required on Mac
-#else
+  // Decide GL+GLSL versions
   // GL 3.0 + GLSL 130
   const char *glsl_version = "#version 130";
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
   // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
   // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
-#endif
 
   // Create window with graphics context
-  GLFWwindow *window = glfwCreateWindow(1280, 720, "Dear ImGui GLFW+OpenGL3 example", NULL, NULL);
+  GLFWwindow *window = glfwCreateWindow(1280, 1080, "Label", NULL, NULL);
   if (window == NULL) return 1;
   glfwMakeContextCurrent(window);
   glfwSwapInterval(1);  // Enable vsync
@@ -252,8 +263,8 @@ int main(int argc, const char **argv) {
   // Setup Dear ImGui context
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
-  ImGuiIO &io = ImGui::GetIO();
-  (void)io;
+  io = &(ImGui::GetIO());
+  (void)(*io);
   // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
   // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
@@ -270,13 +281,15 @@ int main(int argc, const char **argv) {
   bool show_another_window = false;
   ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
+  // Add callback function
+  glfwSetKeyCallback(window, keyboard_handler);
+  glfwSetMouseButtonCallback(window, mouse_handler);
+
   // Main loop
 #ifdef __EMSCRIPTEN__
-  // For an Emscripten build we are disabling file-system access, so let's not attempt to do a fopen() of the
-  imgui
-      .ini
-          // file. You may manually call LoadIniSettingsFromMemory() to load settings from your own storage.
-          io.IniFilename = NULL;
+  // For an Emscripten build we are disabling file-system access, so let's not attempt to do a fopen() of the imgui.ini
+  // file. You may manually call LoadIniSettingsFromMemory() to load settings from your own storage.
+  io.IniFilename = NULL;
   EMSCRIPTEN_MAINLOOP_BEGIN
 #else
   while (!glfwWindowShouldClose(window))
@@ -361,10 +374,6 @@ int main(int argc, const char **argv) {
 
   exit(0);
 
-  // init window
-  cv::namedWindow("pic", CV_WINDOW_NORMAL);
-  cv::setMouseCallback("pic", mouse_handler, nullptr);
-
   // img now
   Img img;
   int key = -1;
@@ -374,42 +383,30 @@ int main(int argc, const char **argv) {
     }
 
     cv::imshow("pic", img.content);
-    key = cv::waitKey(20);
-
-    if (key == 's') {
-      std::cout << "record type" << std::endl;
-      int type = -1;
-      std::cin >> type;
-      record_pixel_type(img.content, img.pixel_type, type);
-      control_points.clear();
-    }
-    // IK键切换图片, I上 K下
-    if (key == 'i') {
-    }
-    if (key == 'k') {
-    }
   }
 
   // write file
-  FILE *ofile = NULL;
-  char *Buffer = new char[img.pixel_type.size() * 10];
-  memset(Buffer, '0', sizeof(char) * img.pixel_type.size() * 10);
+  {
+    FILE *ofile = NULL;
+    char *Buffer = new char[img.pixel_type.size() * 10];
+    memset(Buffer, '0', sizeof(char) * img.pixel_type.size() * 10);
 
-  int cnt = 0;
-  int i = 0;
-  ofile = fopen("output.txt", "w");
+    int cnt = 0;
+    int i = 0;
+    ofile = fopen("output.txt", "w");
 
-  for (; cnt < img.pixel_type.size(); cnt++) {
-    Buffer[i] = '0' + img.pixel_type[cnt];
-    i++;
-    if (cnt % img.content.cols == img.content.cols - 1) {
-      Buffer[i] = '\n';
+    for (; cnt < img.pixel_type.size(); cnt++) {
+      Buffer[i] = '0' + img.pixel_type[cnt];
       i++;
+      if (cnt % img.content.cols == img.content.cols - 1) {
+        Buffer[i] = '\n';
+        i++;
+      }
     }
+    fwrite(Buffer, sizeof(char), i, ofile);
+    fclose(ofile);
+    delete[] Buffer;
   }
-  fwrite(Buffer, sizeof(char), i, ofile);
-  fclose(ofile);
-  delete[] Buffer;
 
   return 0;
 }
