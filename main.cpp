@@ -380,7 +380,6 @@ int main(int argc, const char **argv) {
   // img now
   init_img(files[0], img);
   img.index = 0;
-  cv::cvtColor(img.content, img.content, cv::COLOR_BGR2RGBA);
 
   glfwSetErrorCallback(glfw_error_callback);
   if (!glfwInit()) return 1;
