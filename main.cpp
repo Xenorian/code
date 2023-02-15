@@ -115,10 +115,9 @@ void init_img(const std::string &filename, Img &img) {
   img.content = cv::imread(filename);
   if (!img.content.data) {
     std::cerr << "invalid picture path" << std::endl;
-    return 1;
+    exit(1);
   }
   // read pixel - type: files+pmap.txt
-  
 
   // read poly-list: json格式
 
