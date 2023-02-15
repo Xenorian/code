@@ -410,6 +410,8 @@ int main(int argc, const char **argv) {
     {
       ImGui::Begin("img");  // Create a window called "Hello, world!" and append into it.
 
+      ImGui::SetWindowSize(ImVec2{(float)(img.content.cols + 20), (float)(img.content.rows + 40)});
+
       img.window_pos = ImGui::GetWindowPos();
       img.window_size = ImGui::GetWindowSize();
       GLuint texture;
