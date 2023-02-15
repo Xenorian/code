@@ -155,7 +155,7 @@ void mouse_handler(GLFWwindow *window, int button, int action, int mods) {
       if (relative_x >= 0 && relative_x <= img.window_size.x && relative_y >= 0 && relative_y <= img.window_size.y) {
         std::cout << "Left button of the mouse is clicked - position (" << relative_x << ", " << relative_y << ")"
                   << '\n';
-        control_points.emplace_back(io->MousePos.x, io->MousePos.y);
+        control_points.emplace_back(relative_x - 7, relative_y - 7);
       }
     }
   }
@@ -476,6 +476,11 @@ int main(int argc, const char **argv) {
 
       img.window_pos = ImGui::GetWindowPos();
       img.window_size = ImGui::GetWindowSize();
+
+      for (auto &point : control_points) {
+        cv::circle(img.content, point, 1, {255, 255, 255}, 3);
+      }
+
       GLuint texture;
       glGenTextures(1, &texture);
       glBindTexture(GL_TEXTURE_2D, texture);
