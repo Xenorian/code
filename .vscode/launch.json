@@ -8,9 +8,9 @@
       "name": "g++ - Build and debug active file",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/BezierCurve",
+      "program": "${workspaceFolder}/build/Label",
       "args": [
-        "../tiny.png"
+        "../imgs/"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}/build",

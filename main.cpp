@@ -338,6 +338,15 @@ void init_img(const std::string &filename, Img &img) {
     free_color.pop_front();
     used_color.push_back(img.poly_list[i].c);
   }
+  for (int j = 0; j < (int)img.poly_list.size() - 1; j++) {
+    Poly p = img.poly_list[j];
+    for (int i = 0; i < (int)p.points.size() - 1; i++) {
+      cv::line(img.content, p.points[i], p.points[i + 1], {p.c.a * 255, p.c.b * 255, p.c.c * 255});
+    }
+    if (p.points.size() > 1) {
+      cv::line(img.content, p.points[p.points.size() - 1], p.points[0], {p.c.a * 255, p.c.b * 255, p.c.c * 255});
+    }
+  }
 }
 
 void get_files(std::string dir, std::vector<std::string> &files) {
@@ -485,7 +494,7 @@ int main(int argc, const char **argv) {
         cv::circle(img.content, point, 1, {255, 255, 255}, 3);
       }
 
-      for (int i = 0; i < control_points.size() - 1; i++) {
+      for (int i = 0; i < (int)control_points.size() - 1; i++) {
         cv::line(img.content, control_points[i], control_points[i + 1], {255, 255, 255});
       }
 
