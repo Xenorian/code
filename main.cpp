@@ -481,6 +481,10 @@ int main(int argc, const char **argv) {
         cv::circle(img.content, point, 1, {255, 255, 255}, 3);
       }
 
+      for (int i = 0; i < control_points.size() - 1; i++) {
+        cv::line(img.content, control_points[i], control_points[i + 1], {255, 255, 255});
+      }
+
       GLuint texture;
       glGenTextures(1, &texture);
       glBindTexture(GL_TEXTURE_2D, texture);
