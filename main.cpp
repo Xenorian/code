@@ -6,10 +6,12 @@
 #include <opencv2/opencv.hpp>
 #include <string>
 class Poly {
+ public:
   int label;
   std::vector<cv::Point2f> points;
 };
 class Img {
+ public:
   std::string file;
   cv::Mat content;
   std::vector<int> pixel_type;
@@ -104,12 +106,25 @@ void record_pixel_type(const cv::Mat &img, std::vector<int> &res, int type) {
   }
 }
 
-void init_img(const std::string &file, Img &img) {
+void init_img(const std::string &filename, Img &img) {
   // todo::初始化img
+  img.file = filename;
 
   // read image
+  img.content = cv::imread(filename);
+  // read pixel - type: files+pmap.txt
+
+  // read poly-list: json格式
+  // read image
+  cv::Mat img = cv::imread(files[0]);
+  if (!img.data) {
+    std::cerr << "invalid picture path" << std::endl;
+    return 1;
+  }
 
   // read pixel - type: files+pmap.txt
+  std::vector<int> pixel_type(img.rows * img.cols, 0);
+  std::cout << "size: " << img.cols << " * " << img.rows << std::endl;
 
   // read poly-list: json格式
 }
@@ -129,19 +144,6 @@ int main(int argc, const char **argv) {
   // init window
   cv::namedWindow("pic", CV_WINDOW_NORMAL);
   cv::setMouseCallback("pic", mouse_handler, nullptr);
-
-  // read image
-  cv::Mat img = cv::imread(files[0]);
-  if (!img.data) {
-    std::cerr << "invalid picture path" << std::endl;
-    return 1;
-  }
-
-  // read pixel - type: files+pmap.txt
-  std::vector<int> pixel_type(img.rows * img.cols, 0);
-  std::cout << "size: " << img.cols << " * " << img.rows << std::endl;
-
-  // read poly-list: json格式
 
   int key = -1;
   while (key != 27) {
