@@ -75,7 +75,7 @@ void Img::add_poly(int type) {
     exit(1);
   }
   Poly p;
-  p.c = *free_color.begin();
+  p.c = *(free_color.begin());
   used_color.push_back(p.c);
   free_color.pop_front();
   p.label = type;
@@ -191,9 +191,9 @@ void keyboard_handler(GLFWwindow *window, int key, int scancode, int action, int
       record_pixel_type(img.content, img.pixel_type, type);
       img.add_poly(type);
 
-      Poly p;
+      Poly p = img.poly_list[img.poly_list.size() - 1];
+
       for (int i = 0; i < (int)img.poly_list[img.poly_list.size() - 1].points.size() - 1; i++) {
-        p = img.poly_list[img.poly_list.size() - 1];
         cv::line(img.content, p.points[i], p.points[i + 1], {p.c.a * 255, p.c.b * 255, p.c.c * 255});
       }
       cv::line(img.content, p.points[0], p.points[p.points.size() - 1], {p.c.a * 255, p.c.b * 255, p.c.c * 255});
@@ -280,7 +280,6 @@ void init_img(const std::string &filename, Img &img) {
 
   // read image
   img.content = cv::imread(filename);
-  cv::cvtColor(img.content, img.content, cv::COLOR_BGR2RGBA);
   if (!img.content.data) {
     std::cerr << "invalid picture path" << std::endl;
     exit(1);
@@ -507,13 +506,15 @@ int main(int argc, const char **argv) {
       }
 
       GLuint texture;
+      cv::Mat tmp = img.content;
+      cv::cvtColor(tmp, tmp, cv::COLOR_BGR2RGBA);
       glGenTextures(1, &texture);
       glBindTexture(GL_TEXTURE_2D, texture);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.content.cols, img.content.rows, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                   img.content.data);
+                   tmp.data);
       ImGui::Image(reinterpret_cast<void *>(static_cast<intptr_t>(texture)),
                    ImVec2(img.content.cols, img.content.rows));
       ImGui::End();
