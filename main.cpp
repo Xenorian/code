@@ -16,13 +16,26 @@
 #define GL_SILENCE_DEPRECATION
 
 #include <GLFW/glfw3.h>  // Will drag system OpenGL headers
-
+const int color_num = 15;
 std::vector<cv::Point2f> control_points;
-
+class Color {
+ public:
+  float a;
+  float b;
+  float c;
+  bool operator==(const Color &p) { return a == p.a && b == p.b && c == p.c; }
+  Color() {}
+  Color(float _a, float _b, float _c) {
+    a = _a;
+    b = _b;
+    c = _c;
+  }
+};
 class Poly {
  public:
   int label;
   std::vector<cv::Point2f> points;
+  Color c;
 };
 class Img {
  public:
@@ -39,13 +52,32 @@ class Img {
   int index;
 };
 
+std::list<Color> free_color;
+std::list<Color> used_color;
+
 void Img::delete_poly(int index) {
   // todo::删除多边形
+  free_color.push_back(poly_list[index].c);
+  auto this_color = used_color.begin();
+  for (auto it = used_color.begin(); it != used_color.end(); it++) {
+    if (*it == poly_list[index].c) {
+      this_color = it;
+      break;
+    }
+  }
+  used_color.erase(this_color);
   poly_list.erase(poly_list.begin() + index);
 }
 void Img::add_poly(int type) {
   // todo::添加多边形
+  if (free_color.size() == 0) {
+    std::cerr << "color num < poly number" << std::endl;
+    exit(1);
+  }
   Poly p;
+  p.c = *free_color.begin();
+  used_color.push_back(p.c);
+  free_color.pop_front();
   p.label = type;
   for (int i = 0; i < control_points.size(); i++) {
     p.points.push_back(control_points[i]);
@@ -292,6 +324,16 @@ void init_img(const std::string &filename, Img &img) {
     std::cout << "parse error" << std::endl;
   }
   ifile.close();
+
+  if (img.poly_list.size() > color_num) {
+    std::cout << "too many poly > color_num" << std::endl;
+    exit(1);
+  }
+  for (int i = 0; i < img.poly_list.size(); i++) {
+    img.poly_list[i].c = *free_color.begin();
+    free_color.pop_front();
+    used_color.push_back(img.poly_list[i].c);
+  }
 }
 
 void get_files(std::string dir, std::vector<std::string> &files) {
@@ -316,12 +358,18 @@ void get_files(std::string dir, std::vector<std::string> &files) {
 static void glfw_error_callback(int error, const char *description) {
   fprintf(stderr, "GLFW Error %d: %s\n", error, description);
 }
-
+void initialize_color(int num) {
+  for (int i = 0; i < num; i++) {
+    free_color.push_back(Color(float(i) / (num + 5), 0.5f, 0.5f));
+  }
+}
 int main(int argc, const char **argv) {
   if (argc != 2) {
     return 0;
   }
-  //
+  // color initialize
+  initialize_color(color_num);
+
   std::string dir = argv[1];
 
   get_files(dir, files);
