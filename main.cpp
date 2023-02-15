@@ -90,7 +90,7 @@ void Img::output() {
   char *Buffer = new char[pixel_type.size()];
   memset(Buffer, 0, sizeof(char) * pixel_type.size());
 
-  ofile = fopen((file + "pixel_map.txt").c_str(), "w");
+  ofile = fopen(("../data/" + file + "pixel_map.txt").c_str(), "w");
 
   for (int i = 0; i < pixel_type.size(); i++) {
     Buffer[i] = pixel_type[i];
@@ -117,7 +117,7 @@ void Img::output() {
 
   Json::FastWriter writer;
   std::string poly_list_str = writer.write(root);
-  write_file(poly_list_str, file + "poly_list.json");
+  write_file(poly_list_str, "../data/" + file + "poly_list.json");
 }
 void Img::write_file(const std::string &content, const std::string &filename) {
   FILE *ofile = NULL;
@@ -171,6 +171,8 @@ void keyboard_handler(GLFWwindow *window, int key, int scancode, int action, int
         init_img(files[img.index - 1], img);
         img.index--;
       }
+      img.output();
+      control_points.clear();
     } else if (key == GLFW_KEY_DOWN) {
       if (img.index == files.size() - 1) {
         init_img(files[0], img);
@@ -179,6 +181,8 @@ void keyboard_handler(GLFWwindow *window, int key, int scancode, int action, int
         init_img(files[img.index + 1], img);
         img.index++;
       }
+      img.output();
+      control_points.clear();
     } else if (key == GLFW_KEY_S) {
       // 保存
       std::cout << "record type" << std::endl;
