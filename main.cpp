@@ -162,35 +162,21 @@ void get_files(std::string dir, std::vector<std::string> &files) {
   //   std::cout << a << std::endl;
   // }
 }
+
 int main(int argc, const char **argv) {
   // glfwSetErrorCallback(glfw_error_callback);
   if (!glfwInit()) return 1;
 
-    // Decide GL+GLSL versions
-#if defined(IMGUI_IMPL_OPENGL_ES2)
-  // GL ES 2.0 + GLSL 100
-  const char *glsl_version = "#version 100";
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-  glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
-#elif defined(__APPLE__)
-  // GL 3.2 + GLSL 150
-  const char *glsl_version = "#version 150";
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // Required on Mac
-#else
+  // Decide GL+GLSL versions
   // GL 3.0 + GLSL 130
   const char *glsl_version = "#version 130";
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
   // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
   // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
-#endif
 
   // Create window with graphics context
-  GLFWwindow *window = glfwCreateWindow(1280, 720, "Dear ImGui GLFW+OpenGL3 example", NULL, NULL);
+  GLFWwindow *window = glfwCreateWindow(1280, 1080, "Label", NULL, NULL);
   if (window == NULL) return 1;
   glfwMakeContextCurrent(window);
   glfwSwapInterval(1);  // Enable vsync
@@ -217,15 +203,8 @@ int main(int argc, const char **argv) {
   ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
   // Main loop
-#ifdef __EMSCRIPTEN__
-  // For an Emscripten build we are disabling file-system access, so let's not attempt to do a fopen() of the imgui.ini
-  // file. You may manually call LoadIniSettingsFromMemory() to load settings from your own storage.
-  io.IniFilename = NULL;
-  EMSCRIPTEN_MAINLOOP_BEGIN
-#else
-  while (!glfwWindowShouldClose(window))
-#endif
-  {
+
+  while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
 
     // Start the Dear ImGui frame
