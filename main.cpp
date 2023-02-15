@@ -5,8 +5,25 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <string>
+class Poly {
+  int label;
+  std::vector<cv::Point2f> points;
+};
+class Img {
+  std::string file;
+  cv::Mat content;
+  std::vector<int> pixel_type;
+  std::vector<Poly> poly_list;
+  void delete_poly(int index);
+  void add_poly();
+};
 
-
+void Img::delete_poly(int index) {
+  // todo::删除多边形
+}
+void Img::add_poly() {
+  // todo::添加多边形
+}
 std::vector<cv::Point2f> control_points;
 
 void mouse_handler(int event, int x, int y, int flags, void *userdata) {
@@ -86,25 +103,45 @@ void record_pixel_type(const cv::Mat &img, std::vector<int> &res, int type) {
     }
   }
 }
+
+void init_img(const std::string &file, Img &img) {
+  // todo::初始化img
+
+  // read image
+
+  // read pixel - type: files+pmap.txt
+
+  // read poly-list: json格式
+}
+void get_files(std::string dir, std::vector<std::string> &files) {
+  // todo::拿到所有文件
+}
 int main(int argc, const char **argv) {
   if (argc != 2) {
     return 0;
   }
+  //
+  std::string dir = argv[1];
+  std::vector<std::string> files;
+
+  get_files(dir, files);
+
   // init window
   cv::namedWindow("pic", CV_WINDOW_NORMAL);
   cv::setMouseCallback("pic", mouse_handler, nullptr);
 
   // read image
-  std::string picture_path = argv[1];
-  cv::Mat img = cv::imread(picture_path);
+  cv::Mat img = cv::imread(files[0]);
   if (!img.data) {
     std::cerr << "invalid picture path" << std::endl;
     return 1;
   }
 
-  // result pixel - type
+  // read pixel - type: files+pmap.txt
   std::vector<int> pixel_type(img.rows * img.cols, 0);
   std::cout << "size: " << img.cols << " * " << img.rows << std::endl;
+
+  // read poly-list: json格式
 
   int key = -1;
   while (key != 27) {
@@ -122,12 +159,13 @@ int main(int argc, const char **argv) {
       record_pixel_type(img, pixel_type, type);
       control_points.clear();
     }
+    // 上下键切换图片
+    if (key == ' ') {
+    }
+    if (key == ' ') {
+    }
   }
-  // control_points.emplace_back(10.5, 10.5);
-  // control_points.emplace_back(10.5, 20.5);
-  // control_points.emplace_back(20.5, 20.5);
-  // control_points.emplace_back(20.5, 10.5);
-  // record_pixel_type(img, pixel_type, 1);
+
   // write file
   FILE *ofile = NULL;
   char *Buffer = new char[pixel_type.size() * 10];
@@ -148,19 +186,6 @@ int main(int argc, const char **argv) {
   fwrite(Buffer, sizeof(char), i, ofile);
   fclose(ofile);
   delete[] Buffer;
-
-  // std::ofstream ofile;
-  // ofile.open("output.txt", std::ios_base::out);
-  // for (int i = 0; i < pixel_type.size(); i++) {
-  //   int row = i / img.cols;
-  //   int col = i % img.cols;
-  //   // std::cout << "write file: " << col << " " << row << std::endl;
-  //   ofile << pixel_type[i];
-  //   if (col == img.cols - 1) {
-  //     ofile << std ::endl;
-  //   }
-  // }
-  // ofile.close();
 
   return 0;
 }

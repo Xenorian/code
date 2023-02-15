@@ -63,7 +63,14 @@
     "typeindex": "cpp",
     "typeinfo": "cpp",
     "bit": "cpp",
-    "variant": "cpp"
+    "variant": "cpp",
+    "compare": "cpp",
+    "concepts": "cpp",
+    "unordered_set": "cpp",
+    "numbers": "cpp",
+    "semaphore": "cpp",
+    "shared_mutex": "cpp",
+    "stop_token": "cpp"
   },
   "editor.formatOnSave": true,
   "editor.formatOnPaste": true,
