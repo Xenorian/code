@@ -118,13 +118,22 @@ void init_img(const std::string &filename, Img &img) {
     exit(1);
   }
   // read pixel - type: files+pmap.txt
+  img.pixel_type.resize(img.content.rows * img.content.cols);
+  std::cout << filename << ": size = " << img.content.cols << " * " << img.content.rows << std::endl;
 
-  // read poly-list: json格式
+  FILE *ifile = NULL;
+  char *Buffer = new char[img.pixel_type.size()];
+  memset(Buffer, '0', sizeof(char) * img.pixel_type.size());
 
-  // read pixel - type: files+pmap.txt
-  std::vector<int> pixel_type(img.rows * img.cols, 0);
-  std::cout << "size: " << img.cols << " * " << img.rows << std::endl;
+  int cnt = 0;
+  int i = 0;
+  ifile = fopen((filename + "pmap.txt").c_str(), "r");
 
+  fwrite(Buffer, sizeof(char), img.pixel_type.size(), ifile);
+  for (int i = 0; i < img.pixel_type.size(); i++) {
+    img.pixel_type[i] = Buffer[i];
+  }
+  delete[] Buffer;
   // read poly-list: json格式
 }
 void get_files(std::string dir, std::vector<std::string> &files) {

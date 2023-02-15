@@ -70,7 +70,9 @@
     "numbers": "cpp",
     "semaphore": "cpp",
     "shared_mutex": "cpp",
-    "stop_token": "cpp"
+    "stop_token": "cpp",
+    "codecvt": "cpp",
+    "filesystem": "cpp"
   },
   "editor.formatOnSave": true,
   "editor.formatOnPaste": true,
