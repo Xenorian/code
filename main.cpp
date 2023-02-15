@@ -29,6 +29,7 @@ class Img {
   std::vector<int> pixel_type;
   std::vector<Poly> poly_list;
   void delete_poly(int index);
+  void write_file(const std::string &content, const std::string &filename);
   void add_poly();
   void output();
 };
@@ -40,6 +41,7 @@ void Img::add_poly() {
   // todo::添加多边形
 }
 void Img::output() {
+  // pixel type map
   // json for poly-list
   Json::Value root;
   Json::Value poly;
@@ -60,7 +62,7 @@ void Img::output() {
   std::string poly_list_str = writer.write(root);
   write_file(poly_list_str, file + "poly_list.json");
 }
-void write_file(const std::string &content, const std::string &filename) {
+void Img::write_file(const std::string &content, const std::string &filename) {
   FILE *ofile = NULL;
   char *Buffer = new char[content.size()];
   for (int i = 0; i < content.size(); i++) {
