@@ -190,6 +190,14 @@ void keyboard_handler(GLFWwindow *window, int key, int scancode, int action, int
       std::cin >> type;
       record_pixel_type(img.content, img.pixel_type, type);
       img.add_poly(type);
+
+      Poly p;
+      for (int i = 0; i < (int)img.poly_list[img.poly_list.size() - 1].points.size() - 1; i++) {
+        p = img.poly_list[img.poly_list.size() - 1];
+        cv::line(img.content, p.points[i], p.points[i + 1], {p.c.a * 255, p.c.b * 255, p.c.c * 255});
+      }
+      cv::line(img.content, p.points[0], p.points[p.points.size() - 1], {p.c.a * 255, p.c.b * 255, p.c.c * 255});
+
       control_points.clear();
     }
   }
