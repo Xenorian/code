@@ -51,6 +51,7 @@ void mouse_handler(GLFWwindow *window, int button, int action, int mods) {
   if (action == GLFW_PRESS) {
     std::cout << "Left button of the mouse is clicked - position (" << io->MousePos.x << ", " << io->MousePos.y << ")"
               << '\n';
+
     control_points.emplace_back(io->MousePos.x, io->MousePos.y);
   }
 }
@@ -189,14 +190,31 @@ void get_files(std::string dir, std::vector<std::string> &files) {
   // }
 }
 
+static void glfw_error_callback(int error, const char *description) {
+  fprintf(stderr, "GLFW Error %d: %s\n", error, description);
+}
+
 int main(int argc, const char **argv) {
-  // glfwSetErrorCallback(glfw_error_callback);
+  if (argc != 2) {
+    return 0;
+  }
+  //
+  std::string dir = argv[1];
+  std::vector<std::string> files;
+
+  get_files(dir, files);
+
+  // img now
+  Img img;
+  img.content = cv::imread(argv[1]);
+
+  glfwSetErrorCallback(glfw_error_callback);
   if (!glfwInit()) return 1;
 
   // Decide GL+GLSL versions
   // GL 3.0 + GLSL 130
   const char *glsl_version = "#version 130";
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
   // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
   // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
@@ -270,6 +288,22 @@ int main(int argc, const char **argv) {
       ImGui::End();
     }
 
+    // 图片窗口
+    {
+      ImGui::Begin("img");  // Create a window called "Hello, world!" and append into it.
+      GLuint texture;
+      glGenTextures(1, &texture);
+      glBindTexture(GL_TEXTURE_2D, texture);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.content.cols, img.content.rows, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                   img.content.data);
+      ImGui::Image(reinterpret_cast<void *>(static_cast<intptr_t>(texture)),
+                   ImVec2(img.content.cols, img.content.rows));
+      ImGui::End();
+    }
+
     // 3. Show another simple window.
     if (show_another_window) {
       ImGui::Begin("Another Window",
@@ -302,28 +336,6 @@ int main(int argc, const char **argv) {
   glfwTerminate();
 
   exit(0);
-
-  if (argc != 2) {
-    return 0;
-  }
-  //
-  std::string dir = argv[1];
-  std::vector<std::string> files;
-
-  get_files(dir, files);
-
-  exit(0);
-
-  // img now
-  Img img;
-  int key = -1;
-  while (key != 27) {
-    for (auto &point : control_points) {
-      cv::circle(img.content, point, 1, {255, 255, 255}, 3);
-    }
-
-    cv::imshow("pic", img.content);
-  }
 
   // write file
   {

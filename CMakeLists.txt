@@ -16,4 +16,4 @@ add_subdirectory(./includes/imgui)
 
 add_executable(Label main.cpp)
 
-target_link_libraries(Label ${OpenCV_LIBRARIES} OpenGL::GL glfw imgui_lib)
+target_link_libraries(Label ${OpenCV_LIBRARIES} OpenGL::GL glfw imgui_lib ${CMAKE_DL_LIBS})
