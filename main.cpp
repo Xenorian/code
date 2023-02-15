@@ -1,4 +1,5 @@
 #include <opencv2/highgui/highgui_c.h>
+#include <algorithm>
 #include <chrono>
 #include <cstdio>
 #include <filesystem>
@@ -111,33 +112,47 @@ void init_img(const std::string &filename, Img &img) {
   // todo::初始化img
   img.file = filename;
 
-  // read image
-  img.content = cv::imread(filename);
-  if (!img.content.data) {
-    std::cerr << "invalid picture path" << std::endl;
-    exit(1);
-  }
-  // read pixel - type: files+pmap.txt
-  img.pixel_type.resize(img.content.rows * img.content.cols);
-  std::cout << filename << ": size = " << img.content.cols << " * " << img.content.rows << std::endl;
+// read image
+img.content = cv::imread(filename);
+if (!img.content.data) {
+  std::cerr << "invalid picture path" << std::endl;
+  exit(1);
+}
+// read pixel - type: files+pmap.txt
+img.pixel_type.resize(img.content.rows * img.content.cols);
+std::cout << filename << ": size = " << img.content.cols << " * " << img.content.rows << std::endl;
 
-  FILE *ifile = NULL;
-  char *Buffer = new char[img.pixel_type.size()];
-  memset(Buffer, '0', sizeof(char) * img.pixel_type.size());
+FILE *ifile = NULL;
+char *Buffer = new char[img.pixel_type.size()];
+memset(Buffer, '0', sizeof(char) * img.pixel_type.size());
 
-  int cnt = 0;
-  int i = 0;
-  ifile = fopen((filename + "pmap.txt").c_str(), "r");
+int cnt = 0;
+int i = 0;
+ifile = fopen((filename + "pmap.txt").c_str(), "r");
 
-  fwrite(Buffer, sizeof(char), img.pixel_type.size(), ifile);
-  for (int i = 0; i < img.pixel_type.size(); i++) {
-    img.pixel_type[i] = Buffer[i];
-  }
-  delete[] Buffer;
-  // read poly-list: json格式
+fwrite(Buffer, sizeof(char), img.pixel_type.size(), ifile);
+for (int i = 0; i < img.pixel_type.size(); i++) {
+  img.pixel_type[i] = Buffer[i];
+}
+delete[] Buffer;
+// read poly-list: json格式
 }
 void get_files(std::string dir, std::vector<std::string> &files) {
-  // todo::拿到所有文件
+  files.clear();
+
+  // 打开指定目录，遍历该文件夹下所有文件和文件夹
+  // 指定目录下最好不包含文件夹
+  std::filesystem::path target_path(dir);
+  auto iterator = std::filesystem::directory_iterator(target_path);
+  for (auto &entry : iterator) {
+    files.emplace_back(entry.path().string());
+  }
+
+  // 文件路径肯定不一样，不用纠结稳定性的问题
+  std::sort(files.begin(), files.end());
+  for (auto &a : files) {
+    std::cout << a << std::endl;
+  }
 }
 int main(int argc, const char **argv) {
   if (argc != 2) {
@@ -149,24 +164,28 @@ int main(int argc, const char **argv) {
 
   get_files(dir, files);
 
+  exit(0);
+
   // init window
   cv::namedWindow("pic", CV_WINDOW_NORMAL);
   cv::setMouseCallback("pic", mouse_handler, nullptr);
 
+  // img now
+  Img img;
   int key = -1;
   while (key != 27) {
     for (auto &point : control_points) {
-      cv::circle(img, point, 1, {255, 255, 255}, 3);
+      cv::circle(img.content, point, 1, {255, 255, 255}, 3);
     }
 
-    cv::imshow("pic", img);
+    cv::imshow("pic", img.content);
     key = cv::waitKey(20);
 
     if (key == 's') {
       std::cout << "record type" << std::endl;
       int type = -1;
       std::cin >> type;
-      record_pixel_type(img, pixel_type, type);
+      record_pixel_type(img.content, img.pixel_type, type);
       control_points.clear();
     }
     // 上下键切换图片
@@ -178,17 +197,17 @@ int main(int argc, const char **argv) {
 
   // write file
   FILE *ofile = NULL;
-  char *Buffer = new char[pixel_type.size() * 10];
-  memset(Buffer, '0', sizeof(char) * pixel_type.size() * 10);
+  char *Buffer = new char[img.pixel_type.size() * 10];
+  memset(Buffer, '0', sizeof(char) * img.pixel_type.size() * 10);
 
   int cnt = 0;
   int i = 0;
   ofile = fopen("output.txt", "w");
 
-  for (; cnt < pixel_type.size(); cnt++) {
-    Buffer[i] = '0' + pixel_type[cnt];
+  for (; cnt < img.pixel_type.size(); cnt++) {
+    Buffer[i] = '0' + img.pixel_type[cnt];
     i++;
-    if (cnt % img.cols == img.cols - 1) {
+    if (cnt % img.content.cols == img.content.cols - 1) {
       Buffer[i] = '\n';
       i++;
     }
