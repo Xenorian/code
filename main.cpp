@@ -36,6 +36,7 @@ class Img {
   void output();
   ImVec2 window_pos;
   ImVec2 window_size;
+  int index;
 };
 
 void Img::delete_poly(int index) {
@@ -106,6 +107,7 @@ void record_pixel_type(const cv::Mat &img, std::vector<int> &res, int type);
 void init_img(const std::string &filename, Img &img);
 
 Img img;
+std::vector<std::string> files;
 
 ImGuiIO *io = nullptr;
 
@@ -130,7 +132,21 @@ void mouse_handler(GLFWwindow *window, int button, int action, int mods) {
 void keyboard_handler(GLFWwindow *window, int key, int scancode, int action, int mods) {
   if (action == GLFW_PRESS) {
     if (key == GLFW_KEY_UP) {
+      if (img.index == 0) {
+        init_img(files[files.size() - 1], img);
+        img.index = files.size() - 1;
+      } else {
+        init_img(files[img.index - 1], img);
+        img.index--;
+      }
     } else if (key == GLFW_KEY_DOWN) {
+      if (img.index == files.size() - 1) {
+        init_img(files[0], img);
+        img.index = 0;
+      } else {
+        init_img(files[img.index + 1], img);
+        img.index++;
+      }
     } else if (key == GLFW_KEY_S) {
       // 保存
       std::cout << "record type" << std::endl;
@@ -220,6 +236,7 @@ void init_img(const std::string &filename, Img &img) {
 
   // read image
   img.content = cv::imread(filename);
+  cv::cvtColor(img.content, img.content, cv::COLOR_BGR2RGBA);
   if (!img.content.data) {
     std::cerr << "invalid picture path" << std::endl;
     exit(1);
@@ -306,18 +323,16 @@ int main(int argc, const char **argv) {
   }
   //
   std::string dir = argv[1];
-  std::vector<std::string> files;
 
-  // get_files(dir, files);
+  get_files(dir, files);
+  if (files.size() == 0) {
+    return 0;
+  }
 
   // img now
-  img.content = cv::imread(argv[1]);
+  init_img(files[0], img);
+  img.index = 0;
   cv::cvtColor(img.content, img.content, cv::COLOR_BGR2RGBA);
-
-  // debug
-  img.add_poly(1);
-  img.add_poly(2);
-  img.add_poly(3);
 
   glfwSetErrorCallback(glfw_error_callback);
   if (!glfwInit()) return 1;
