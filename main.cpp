@@ -14,6 +14,7 @@
 #define GL_SILENCE_DEPRECATION
 
 #include <GLFW/glfw3.h>  // Will drag system OpenGL headers
+
 class Poly {
  public:
   int label;
@@ -35,12 +36,37 @@ void Img::delete_poly(int index) {
 void Img::add_poly() {
   // todo::添加多边形
 }
-std::vector<cv::Point2f> control_points;
 
-void mouse_handler(int event, int x, int y, int flags, void *userdata) {
-  if (event == cv::EVENT_LBUTTONDOWN) {
-    std::cout << "Left button of the mouse is clicked - position (" << x << ", " << y << ")" << '\n';
-    control_points.emplace_back(x + 0.5, y + 0.5);
+void get_files(std::string dir, std::vector<std::string> &files);
+int intersect(const cv::Point2f &a, const cv::Point2f &b, const cv::Point2f &c);
+bool inside_circle(const std::vector<cv::Point2f> &control_points, const cv::Point2f &point);
+void record_pixel_type(const cv::Mat &img, std::vector<int> &res, int type);
+void init_img(const std::string &filename, Img &img);
+
+Img img;
+std::vector<cv::Point2f> control_points;
+ImGuiIO *io = nullptr;
+
+void mouse_handler(GLFWwindow *window, int button, int action, int mods) {
+  if (action == GLFW_PRESS) {
+    std::cout << "Left button of the mouse is clicked - position (" << io->MousePos.x << ", " << io->MousePos.y << ")"
+              << '\n';
+    control_points.emplace_back(io->MousePos.x, io->MousePos.y);
+  }
+}
+
+void keyboard_handler(GLFWwindow *window, int key, int scancode, int action, int mods) {
+  if (action == GLFW_PRESS) {
+    if (key == GLFW_KEY_UP) {
+    } else if (key == GLFW_KEY_DOWN) {
+    } else if (key == GLFW_KEY_S) {
+      // 保存
+      std::cout << "record type" << std::endl;
+      int type = -1;
+      std::cin >> type;
+      record_pixel_type(img.content, img.pixel_type, type);
+      control_points.clear();
+    }
   }
 }
 
@@ -184,8 +210,8 @@ int main(int argc, const char **argv) {
   // Setup Dear ImGui context
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
-  ImGuiIO &io = ImGui::GetIO();
-  (void)io;
+  io = &(ImGui::GetIO());
+  (void)(*io);
   // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
   // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
@@ -201,6 +227,10 @@ int main(int argc, const char **argv) {
   bool show_demo_window = true;
   bool show_another_window = false;
   ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+  // Add callback function
+  glfwSetKeyCallback(window, keyboard_handler);
+  glfwSetMouseButtonCallback(window, mouse_handler);
 
   // Main loop
 
@@ -244,7 +274,7 @@ int main(int argc, const char **argv) {
     if (show_another_window) {
       ImGui::Begin("Another Window",
                    &show_another_window);  // Pass a pointer to our bool variable (the window will have a closing button
-                                           // that will clear the bool when clicked)
+      // that will clear the bool when clicked)
       ImGui::Text("Hello from another window!");
       if (ImGui::Button("Close Me")) show_another_window = false;
       ImGui::End();
@@ -284,10 +314,6 @@ int main(int argc, const char **argv) {
 
   exit(0);
 
-  // init window
-  cv::namedWindow("pic", CV_WINDOW_NORMAL);
-  cv::setMouseCallback("pic", mouse_handler, nullptr);
-
   // img now
   Img img;
   int key = -1;
@@ -297,42 +323,30 @@ int main(int argc, const char **argv) {
     }
 
     cv::imshow("pic", img.content);
-    key = cv::waitKey(20);
-
-    if (key == 's') {
-      std::cout << "record type" << std::endl;
-      int type = -1;
-      std::cin >> type;
-      record_pixel_type(img.content, img.pixel_type, type);
-      control_points.clear();
-    }
-    // IK键切换图片, I上 K下
-    if (key == 'i') {
-    }
-    if (key == 'k') {
-    }
   }
 
   // write file
-  FILE *ofile = NULL;
-  char *Buffer = new char[img.pixel_type.size() * 10];
-  memset(Buffer, '0', sizeof(char) * img.pixel_type.size() * 10);
+  {
+    FILE *ofile = NULL;
+    char *Buffer = new char[img.pixel_type.size() * 10];
+    memset(Buffer, '0', sizeof(char) * img.pixel_type.size() * 10);
 
-  int cnt = 0;
-  int i = 0;
-  ofile = fopen("output.txt", "w");
+    int cnt = 0;
+    int i = 0;
+    ofile = fopen("output.txt", "w");
 
-  for (; cnt < img.pixel_type.size(); cnt++) {
-    Buffer[i] = '0' + img.pixel_type[cnt];
-    i++;
-    if (cnt % img.content.cols == img.content.cols - 1) {
-      Buffer[i] = '\n';
+    for (; cnt < img.pixel_type.size(); cnt++) {
+      Buffer[i] = '0' + img.pixel_type[cnt];
       i++;
+      if (cnt % img.content.cols == img.content.cols - 1) {
+        Buffer[i] = '\n';
+        i++;
+      }
     }
+    fwrite(Buffer, sizeof(char), i, ofile);
+    fclose(ofile);
+    delete[] Buffer;
   }
-  fwrite(Buffer, sizeof(char), i, ofile);
-  fclose(ofile);
-  delete[] Buffer;
 
   return 0;
 }
