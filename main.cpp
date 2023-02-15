@@ -17,6 +17,8 @@
 
 #include <GLFW/glfw3.h>  // Will drag system OpenGL headers
 
+std::vector<cv::Point2f> control_points;
+
 class Poly {
  public:
   int label;
@@ -30,15 +32,22 @@ class Img {
   std::vector<Poly> poly_list;
   void delete_poly(int index);
   void write_file(const std::string &content, const std::string &filename);
-  void add_poly();
+  void add_poly(int type);
   void output();
 };
 
 void Img::delete_poly(int index) {
   // todo::删除多边形
+  poly_list.erase(poly_list.begin() + index);
 }
-void Img::add_poly() {
+void Img::add_poly(int type) {
   // todo::添加多边形
+  Poly p;
+  p.label = type;
+  for (int i = 0; i < control_points.size(); i++) {
+    p.points.push_back(control_points[i]);
+  }
+  poly_list.push_back(p);
 }
 void Img::output() {
   // pixel type map
@@ -96,7 +105,6 @@ void init_img(const std::string &filename, Img &img);
 
 Img img;
 
-std::vector<cv::Point2f> control_points;
 ImGuiIO *io = nullptr;
 
 void mouse_handler(GLFWwindow *window, int button, int action, int mods) {
@@ -118,6 +126,7 @@ void keyboard_handler(GLFWwindow *window, int key, int scancode, int action, int
       int type = -1;
       std::cin >> type;
       record_pixel_type(img.content, img.pixel_type, type);
+      img.add_poly(type);
       control_points.clear();
     }
   }
@@ -295,6 +304,11 @@ int main(int argc, const char **argv) {
   img.content = cv::imread(argv[1]);
   cv::cvtColor(img.content, img.content, cv::COLOR_BGR2RGBA);
 
+  // debug
+  img.add_poly(1);
+  img.add_poly(2);
+  img.add_poly(3);
+
   glfwSetErrorCallback(glfw_error_callback);
   if (!glfwInit()) return 1;
 
@@ -395,6 +409,18 @@ int main(int argc, const char **argv) {
                    img.content.data);
       ImGui::Image(reinterpret_cast<void *>(static_cast<intptr_t>(texture)),
                    ImVec2(img.content.cols, img.content.rows));
+      ImGui::End();
+    }
+    //
+    {
+      ImGui::Begin("Img Info");
+      const std::string name = "delete##";
+      for (int i = 0; i < img.poly_list.size(); i++) {
+        if (ImGui::Button((name + std::to_string(i)).c_str())) {
+          img.delete_poly(i);
+          // std::cout << "delete!" << i << std::endl;
+        }
+      }
       ImGui::End();
     }
 
