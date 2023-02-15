@@ -164,6 +164,7 @@ void mouse_handler(GLFWwindow *window, int button, int action, int mods) {
 void keyboard_handler(GLFWwindow *window, int key, int scancode, int action, int mods) {
   if (action == GLFW_PRESS) {
     if (key == GLFW_KEY_UP) {
+      img.output();
       if (img.index == 0) {
         init_img(files[files.size() - 1], img);
         img.index = files.size() - 1;
@@ -171,9 +172,9 @@ void keyboard_handler(GLFWwindow *window, int key, int scancode, int action, int
         init_img(files[img.index - 1], img);
         img.index--;
       }
-      img.output();
       control_points.clear();
     } else if (key == GLFW_KEY_DOWN) {
+      img.output();
       if (img.index == files.size() - 1) {
         init_img(files[0], img);
         img.index = 0;
@@ -181,7 +182,6 @@ void keyboard_handler(GLFWwindow *window, int key, int scancode, int action, int
         init_img(files[img.index + 1], img);
         img.index++;
       }
-      img.output();
       control_points.clear();
     } else if (key == GLFW_KEY_S) {
       // 保存
