@@ -11,6 +11,8 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include "json/json.h"
+#include "stdlib.h"
 #define GL_SILENCE_DEPRECATION
 
 #include <GLFW/glfw3.h>  // Will drag system OpenGL headers
@@ -27,6 +29,7 @@ class Img {
   std::vector<Poly> poly_list;
   void delete_poly(int index);
   void add_poly();
+  void output();
 };
 
 void Img::delete_poly(int index) {
@@ -34,6 +37,40 @@ void Img::delete_poly(int index) {
 }
 void Img::add_poly() {
   // todo::添加多边形
+}
+void Img::output() {
+  // json for poly-list
+  Json::Value root;
+  Json::Value poly;
+  Json::Value point;
+  for (int i = 0; i < poly_list.size(); i++) {
+    Poly p = poly_list[i];
+    poly.resize(0);
+    // add each point to poly
+    for (int j = 0; j < p.points.size(); j++) {
+      point["x"] = std::to_string(p.points[j].x);
+      point["y"] = std::to_string(p.points[j].y);
+      poly.append(point);
+    }
+    root[std::to_string(p.label)].append(poly);
+  }
+
+  Json::FastWriter writer;
+  std::string poly_list_str = writer.write(root);
+  write_file(poly_list_str, file + "poly_list.json");
+}
+void write_file(const std::string &content, const std::string &filename) {
+  FILE *ofile = NULL;
+  char *Buffer = new char[content.size()];
+  for (int i = 0; i < content.size(); i++) {
+    Buffer[i] = content[i];
+  }
+
+  ofile = fopen("filename", "w");
+
+  fwrite(Buffer, sizeof(char), content.size(), ofile);
+  fclose(ofile);
+  delete[] Buffer;
 }
 std::vector<cv::Point2f> control_points;
 
@@ -126,24 +163,40 @@ void init_img(const std::string &filename, Img &img) {
     exit(1);
   }
   // read pixel - type: files+pmap.txt
-  img.pixel_type.resize(img.content.rows * img.content.cols);
-  std::cout << filename << ": size = " << img.content.cols << " * " << img.content.rows << std::endl;
 
-  FILE *ifile = NULL;
-  char *Buffer = new char[img.pixel_type.size()];
-  memset(Buffer, '0', sizeof(char) * img.pixel_type.size());
-
-  int cnt = 0;
-  int i = 0;
-  ifile = fopen((filename + "pmap.txt").c_str(), "r");
-
-  fwrite(Buffer, sizeof(char), img.pixel_type.size(), ifile);
-  for (int i = 0; i < img.pixel_type.size(); i++) {
-    img.pixel_type[i] = Buffer[i];
-  }
-  delete[] Buffer;
   // read poly-list: json格式
+  // type:[[point1,point2...],[]...]
+  Json::Reader reader;
+  std::ifstream ifile(filename + "poly-list.json", std::ios::binary);
+  if (!ifile.is_open()) {
+    std::cout << filename << ": no poly-list " << std::endl;
+    return;
+  }
+  Json::Value root;
+  Json::Value poly;
+  Json::Value point;
+  if (reader.parse(ifile, root)) {
+    Json::Value::Members mem = root.getMemberNames();
+    for (auto it = mem.begin(); it != mem.end(); it++) {
+      std::string label = *it;
+      for (int i = 0; i < root[label].size(); i++) {
+        // for each poly of the same label
+        Poly p;
+        p.label = atoi(label.c_str());
+        for (int j = 0; j < root[label][i].size(); i++) {
+          // for each point
+          cv::Point2f point(root[label][i][j]["x"].asFloat(), root[label][i][j]["y"].asFloat());
+          p.points.push_back(point);
+        }
+        img.poly_list.push_back(p);
+      }
+    }
+  } else {
+    std::cout << "parse error" << std::endl;
+  }
+  ifile.close();
 }
+
 void get_files(std::string dir, std::vector<std::string> &files) {
   files.clear();
 
@@ -162,6 +215,7 @@ void get_files(std::string dir, std::vector<std::string> &files) {
   //   std::cout << a << std::endl;
   // }
 }
+
 int main(int argc, const char **argv) {
   // glfwSetErrorCallback(glfw_error_callback);
   if (!glfwInit()) return 1;
@@ -218,9 +272,11 @@ int main(int argc, const char **argv) {
 
   // Main loop
 #ifdef __EMSCRIPTEN__
-  // For an Emscripten build we are disabling file-system access, so let's not attempt to do a fopen() of the imgui.ini
-  // file. You may manually call LoadIniSettingsFromMemory() to load settings from your own storage.
-  io.IniFilename = NULL;
+  // For an Emscripten build we are disabling file-system access, so let's not attempt to do a fopen() of the
+  imgui
+      .ini
+          // file. You may manually call LoadIniSettingsFromMemory() to load settings from your own storage.
+          io.IniFilename = NULL;
   EMSCRIPTEN_MAINLOOP_BEGIN
 #else
   while (!glfwWindowShouldClose(window))
@@ -265,7 +321,7 @@ int main(int argc, const char **argv) {
     if (show_another_window) {
       ImGui::Begin("Another Window",
                    &show_another_window);  // Pass a pointer to our bool variable (the window will have a closing button
-                                           // that will clear the bool when clicked)
+      // that will clear the bool when clicked)
       ImGui::Text("Hello from another window!");
       if (ImGui::Button("Close Me")) show_another_window = false;
       ImGui::End();
