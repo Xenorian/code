@@ -1,21 +1,19 @@
 {
-    "configurations": [
-        {
-            "name": "Linux",
-            "includePath": [
-                "${workspaceFolder}/**",
-                "/usr/include/**",
-                "${workspaceFolder}/includes/**",
-                "${workspaceFolder}/includes/imgui/**",
-                "${workspaceFolder}/includes/imgui/backends/**"
-            ],
-            "defines": [],
-            "compilerPath": "/usr/bin/g++-9",
-            "cStandard": "c17",
-            "cppStandard": "c++17",
-            "intelliSenseMode": "linux-clang-x64",
-            "configurationProvider": "ms-vscode.cmake-tools"
-        }
-    ],
-    "version": 4
+  "configurations": [
+    {
+      "name": "Linux",
+      "includePath": [
+        "${workspaceFolder}/**",
+        "/usr/include/**",
+        "${workspaceFolder}/includes/**"
+      ],
+      "defines": [],
+      "compilerPath": "/usr/bin/g++-9",
+      "cStandard": "c17",
+      "cppStandard": "c++17",
+      "intelliSenseMode": "linux-clang-x64",
+      "configurationProvider": "ms-vscode.cmake-tools"
+    }
+  ],
+  "version": 4
 }
