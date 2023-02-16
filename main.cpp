@@ -114,7 +114,7 @@ void Img::output() {
     }
     root[std::to_string(p.label)].append(poly);
   }
-
+  root["filename"] = file;
   Json::FastWriter writer;
   std::string poly_list_str = writer.write(root);
   write_file(poly_list_str, "../data/" + std::to_string(index) + "poly_list.json");
@@ -328,17 +328,22 @@ void init_img(const std::string &filename, Img &img) {
     Json::Value::Members mem = root.getMemberNames();
     for (auto it = mem.begin(); it != mem.end(); it++) {
       std::string label = *it;
-      for (int i = 0; i < root[label].size(); i++) {
-        // for each poly of the same label
-        Poly p;
-        p.label = atoi(label.c_str());
-        for (int j = 0; j < root[label][i].size(); j++) {
-          // for each point
-          // std::cout << root[label][i][j]["x"] << std::endl;
-          cv::Point2f point(std::stof(root[label][i][j]["x"].asString()), std::stof(root[label][i][j]["y"].asString()));
-          p.points.push_back(point);
+      if (label == "filename") {
+        std::cout << "init img: " << root[label] << std::endl;
+      } else {
+        for (int i = 0; i < root[label].size(); i++) {
+          // for each poly of the same label
+          Poly p;
+          p.label = atoi(label.c_str());
+          for (int j = 0; j < root[label][i].size(); j++) {
+            // for each point
+            // std::cout << root[label][i][j]["x"] << std::endl;
+            cv::Point2f point(std::stof(root[label][i][j]["x"].asString()),
+                              std::stof(root[label][i][j]["y"].asString()));
+            p.points.push_back(point);
+          }
+          img.poly_list.push_back(p);
         }
-        img.poly_list.push_back(p);
       }
     }
   } else {
