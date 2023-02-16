@@ -126,7 +126,7 @@ void Img::write_file(const std::string &content, const std::string &filename) {
     Buffer[i] = content[i];
   }
 
-  ofile = fopen("filename", "w");
+  ofile = fopen(filename.c_str(), "w");
 
   fwrite(Buffer, sizeof(char), content.size(), ofile);
   fclose(ofile);
