@@ -16,8 +16,7 @@
 #define GL_SILENCE_DEPRECATION
 
 #include <GLFW/glfw3.h>  // Will drag system OpenGL headers
-const int color_num = 15;
-std::vector<cv::Point2f> control_points;
+
 class Color {
  public:
   float a;
@@ -49,11 +48,25 @@ class Img {
   void output();
   ImVec2 window_pos;
   ImVec2 window_size;
+  bool is_active;
   int index;
 };
 
 std::list<Color> free_color;
 std::list<Color> used_color;
+
+const int color_num = 10;
+std::vector<cv::Point2f> control_points;
+
+Img img;
+std::vector<std::string> files;
+
+ImGuiIO *io = nullptr;
+const int line_thick = 5;
+
+bool output_enable = false;
+
+std::vector<const char *> target_type{"none", "cup", "table", "sofa"};
 
 void Img::delete_poly(int index) {
   // todo::删除多边形
@@ -138,15 +151,11 @@ bool inside_circle(const std::vector<cv::Point2f> &control_points, const cv::Poi
 void record_pixel_type(const cv::Mat &img, std::vector<int> &res, int type);
 void init_img(const std::string &filename, Img &img);
 void initialize_color(int num);
-
-Img img;
-std::vector<std::string> files;
-
-ImGuiIO *io = nullptr;
-const int line_thick = 5;
-
 void mouse_handler(GLFWwindow *window, int button, int action, int mods) {
   static double ox, oy;
+  if (img.is_active == false) {
+    return;
+  }
   if (action == GLFW_PRESS) {
     ox = io->MousePos.x;
     oy = io->MousePos.y;
@@ -162,7 +171,6 @@ void mouse_handler(GLFWwindow *window, int button, int action, int mods) {
     }
   }
 }
-
 void keyboard_handler(GLFWwindow *window, int key, int scancode, int action, int mods) {
   if (action == GLFW_PRESS) {
     if (key == GLFW_KEY_UP) {
@@ -187,22 +195,7 @@ void keyboard_handler(GLFWwindow *window, int key, int scancode, int action, int
       control_points.clear();
     } else if (key == GLFW_KEY_S) {
       // 保存
-      std::cout << "record type" << std::endl;
-      int type = -1;
-      std::cin >> type;
-      record_pixel_type(img.content, img.pixel_type, type);
-      img.add_poly(type);
-
-      Poly p = img.poly_list[img.poly_list.size() - 1];
-      cv::Vec3f tmp_color;
-      for (int i = 0; i < (int)img.poly_list[img.poly_list.size() - 1].points.size() - 1; i++) {
-        ImGui::ColorConvertHSVtoRGB(p.c.a, p.c.b, p.c.c, tmp_color[2], tmp_color[1], tmp_color[0]);
-        tmp_color *= 255;
-        cv::line(img.content, p.points[i], p.points[i + 1], tmp_color, line_thick);
-      }
-      cv::line(img.content, p.points[0], p.points[p.points.size() - 1], tmp_color, line_thick);
-
-      control_points.clear();
+      output_enable = true;
     }
   }
 }
@@ -281,7 +274,7 @@ void initialize_color(int num) {
   free_color.clear();
   used_color.clear();
   for (int i = 0; i < num; i++) {
-    free_color.push_back(Color(float(i) / (num + 5), 1, 0.8));
+    free_color.push_back(Color(float(i) / (num + 2), 1, 0.8));
   }
 }
 void init_img(const std::string &filename, Img &img) {
@@ -474,38 +467,10 @@ int main(int argc, const char **argv) {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to
-    // learn more about Dear ImGui!).
-    if (show_demo_window) ImGui::ShowDemoWindow(&show_demo_window);
-
-    // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
-    {
-      static float f = 0.0f;
-      static int counter = 0;
-
-      ImGui::Begin("Hello, world!");  // Create a window called "Hello, world!" and append into it.
-
-      ImGui::Text("This is some useful text.");           // Display some text (you can use a format strings too)
-      ImGui::Checkbox("Demo Window", &show_demo_window);  // Edit bools storing our window open/close state
-      ImGui::Checkbox("Another Window", &show_another_window);
-
-      ImGui::SliderFloat("float", &f, 0.0f, 1.0f);              // Edit 1 float using a slider from 0.0f to 1.0f
-      ImGui::ColorEdit3("clear color", (float *)&clear_color);  // Edit 3 floats representing a color
-
-      if (ImGui::Button("Button"))  // Buttons return true when clicked (most widgets return true when edited/activated)
-        counter++;
-      ImGui::SameLine();
-      ImGui::Text("counter = %d", counter);
-
-      ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
-                  ImGui::GetIO().Framerate);
-      ImGui::End();
-    }
-
     // 图片窗口
     {
       ImGui::Begin("img");  // Create a window called "Hello, world!" and append into it.
-
+      img.is_active = ImGui::IsWindowFocused();
       ImGui::SetWindowSize(ImVec2{(float)(img.content.cols + 20), (float)(img.content.rows + 40)});
 
       img.window_pos = ImGui::GetWindowPos();
@@ -533,7 +498,7 @@ int main(int argc, const char **argv) {
                    ImVec2(img.content.cols, img.content.rows));
       ImGui::End();
     }
-    // 图像窗口
+    // 图像信息窗口
     {
       ImGui::Begin("Img Info");
       const std::string name = "delete##";
@@ -552,6 +517,35 @@ int main(int argc, const char **argv) {
         }
         ImGui::PopStyleColor(3);
         ImGui::PopID();
+      }
+      ImGui::End();
+    }
+
+    // 输入窗口
+    if (output_enable) {
+      ImGui::Begin("new poly");
+      int type = 0;
+      ImGui::InputInt("->", &type);
+      if (type >= 0 && type < target_type.size()) {
+        ImGui::SameLine();
+        ImGui::Text(target_type[type]);
+      }
+
+      if (ImGui::Button("Save")) {
+        record_pixel_type(img.content, img.pixel_type, type);
+        img.add_poly(type);
+
+        Poly p = img.poly_list[img.poly_list.size() - 1];
+        cv::Vec3f tmp_color;
+        for (int i = 0; i < (int)img.poly_list[img.poly_list.size() - 1].points.size() - 1; i++) {
+          ImGui::ColorConvertHSVtoRGB(p.c.a, p.c.b, p.c.c, tmp_color[2], tmp_color[1], tmp_color[0]);
+          tmp_color *= 255;
+          cv::line(img.content, p.points[i], p.points[i + 1], tmp_color, line_thick);
+        }
+        cv::line(img.content, p.points[0], p.points[p.points.size() - 1], tmp_color, line_thick);
+
+        control_points.clear();
+        output_enable = false;
       }
       ImGui::End();
     }
