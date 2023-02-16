@@ -17,3 +17,8 @@ imgui输出框，输入数字，自动显示英文label
 4. 不同mask区域，他的label是什么，英文名称: 暂定`imgui`或`opencv`
 imgui::showdemo 可以显示图例+label
 
+最新的要求：
+1.json文件中 记录文件名
+2.暂不支持逐点取消
+3.poly颜色和button按钮
+4.图片目录和数据目录
