@@ -137,6 +137,7 @@ int intersect(const cv::Point2f &a, const cv::Point2f &b, const cv::Point2f &c);
 bool inside_circle(const std::vector<cv::Point2f> &control_points, const cv::Point2f &point);
 void record_pixel_type(const cv::Mat &img, std::vector<int> &res, int type);
 void init_img(const std::string &filename, Img &img);
+void initialize_color(int num);
 
 Img img;
 std::vector<std::string> files;
