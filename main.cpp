@@ -277,7 +277,7 @@ void initialize_color(int num) {
   free_color.clear();
   used_color.clear();
   for (int i = 0; i < num; i++) {
-    free_color.push_back(Color(float(i) / (num + 5), 0.5f, 0.5f));
+    free_color.push_back(Color(float(i) / (num + 5), float(i) / (num + 5), float(i) / (num + 5)));
   }
 }
 void init_img(const std::string &filename, Img &img) {
