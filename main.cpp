@@ -273,7 +273,13 @@ void record_pixel_type(const cv::Mat &img, std::vector<int> &res, int type) {
     }
   }
 }
-
+void initialize_color(int num) {
+  free_color.clear();
+  used_color.clear();
+  for (int i = 0; i < num; i++) {
+    free_color.push_back(Color(float(i) / (num + 5), 0.5f, 0.5f));
+  }
+}
 void init_img(const std::string &filename, Img &img) {
   // todo::初始化img
   initialize_color(color_num);
@@ -381,13 +387,7 @@ void get_files(std::string dir, std::vector<std::string> &files) {
 static void glfw_error_callback(int error, const char *description) {
   fprintf(stderr, "GLFW Error %d: %s\n", error, description);
 }
-void initialize_color(int num) {
-  free_color.clear();
-  used_color.clear();
-  for (int i = 0; i < num; i++) {
-    free_color.push_back(Color(float(i) / (num + 5), 0.5f, 0.5f));
-  }
-}
+
 int main(int argc, const char **argv) {
   if (argc != 2) {
     return 0;
@@ -530,7 +530,8 @@ int main(int argc, const char **argv) {
       const std::string name = "delete##";
       for (int i = 0; i < img.poly_list.size(); i++) {
         ImGui::PushID(i);
-        ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / 7.0f, 0.6f, 0.6f));
+        ImGui::PushStyleColor(ImGuiCol_Button,
+                              (ImVec4)ImColor(img.poly_list[i].c.a, img.poly_list[i].c.b, img.poly_list[i].c.c));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, 0.7f, 0.7f));
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));
         if (ImGui::Button((name + std::to_string(i)).c_str())) {
