@@ -50,6 +50,8 @@ class Img {
   ImVec2 window_size;
   bool is_active;
   int index;
+
+  int tmp_poly_type;
 };
 
 std::list<Color> free_color;
@@ -171,28 +173,27 @@ void mouse_handler(GLFWwindow *window, int button, int action, int mods) {
     }
   }
 }
+
+void switch_img(int index) {
+  img.output();
+  img.index = index;
+  init_img(files[img.index], img);
+  control_points.clear();
+}
 void keyboard_handler(GLFWwindow *window, int key, int scancode, int action, int mods) {
   if (action == GLFW_PRESS) {
     if (key == GLFW_KEY_UP) {
-      img.output();
       if (img.index == 0) {
-        img.index = files.size() - 1;
-        init_img(files[img.index], img);
+        switch_img(files.size() - 1);
       } else {
-        img.index--;
-        init_img(files[img.index], img);
+        switch_img(img.index - 1);
       }
-      control_points.clear();
     } else if (key == GLFW_KEY_DOWN) {
-      img.output();
       if (img.index == files.size() - 1) {
-        img.index = 0;
-        init_img(files[0], img);
+        switch_img(0);
       } else {
-        img.index++;
-        init_img(files[img.index], img);
+        switch_img(img.index + 1);
       }
-      control_points.clear();
     } else if (key == GLFW_KEY_S) {
       // 保存
       output_enable = true;
@@ -358,11 +359,16 @@ void init_img(const std::string &filename, Img &img) {
   }
   for (int j = 0; j < (int)img.poly_list.size(); j++) {
     Poly p = img.poly_list[j];
+
+    cv::Vec3f tmp_color;
+    ImGui::ColorConvertHSVtoRGB(p.c.a, p.c.b, p.c.c, tmp_color[2], tmp_color[1], tmp_color[0]);
+    tmp_color *= 255;
+
     for (int i = 0; i < (int)p.points.size() - 1; i++) {
-      cv::line(img.content, p.points[i], p.points[i + 1], {p.c.a * 255, p.c.b * 255, p.c.c * 255});
+      cv::line(img.content, p.points[i], p.points[i + 1], tmp_color, line_thick);
     }
     if (p.points.size() > 1) {
-      cv::line(img.content, p.points[p.points.size() - 1], p.points[0], {p.c.a * 255, p.c.b * 255, p.c.c * 255});
+      cv::line(img.content, p.points[p.points.size() - 1], p.points[0], tmp_color, line_thick);
     }
   }
 }
@@ -501,17 +507,28 @@ int main(int argc, const char **argv) {
     // 图像信息窗口
     {
       ImGui::Begin("Img Info");
-      const std::string name = "delete##";
+      // 图片跳转
+      ImGui::Text("Switch to picture 0 ~ %lu", files.size() - 1);
+      static int tmp_input_index = 0;
+      ImGui::InputInt("->", &tmp_input_index);
+      ImGui::Text(files[tmp_input_index].c_str());
+      if (ImGui::Button("confirm")) {
+        switch_img(tmp_input_index);
+      }
+      // 当前图片信息
+      ImGui::Text("Img now: %d %s", img.index, files[img.index].c_str());
+      // 删除多边形
+      const std::string name = "delete ";
       for (int i = 0; i < img.poly_list.size(); i++) {
         ImGui::PushID(i);
-        std::cout << img.poly_list[i].c.a << " " << img.poly_list[i].c.b << " " << img.poly_list[i].c.c << std::endl;
+        // std::cout << img.poly_list[i].label << std::endl;
         ImGui::PushStyleColor(ImGuiCol_Button,
                               (ImVec4)ImColor::HSV(img.poly_list[i].c.a, img.poly_list[i].c.b, img.poly_list[i].c.c));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(img.poly_list[i].c.a, img.poly_list[i].c.b,
                                                                            img.poly_list[i].c.c + 0.1));
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(img.poly_list[i].c.a, img.poly_list[i].c.b,
                                                                           img.poly_list[i].c.c + 0.1));
-        if (ImGui::Button((name + std::to_string(i)).c_str())) {
+        if (ImGui::Button((name + target_type[img.poly_list[i].label]).c_str())) {
           img.delete_poly(i);
           // std::cout << "delete!" << i << std::endl;
         }
@@ -524,16 +541,16 @@ int main(int argc, const char **argv) {
     // 输入窗口
     if (output_enable) {
       ImGui::Begin("new poly");
-      int type = 0;
-      ImGui::InputInt("->", &type);
-      if (type >= 0 && type < target_type.size()) {
+      ImGui::InputInt("->", &img.tmp_poly_type);
+      if (img.tmp_poly_type >= 0 && img.tmp_poly_type < target_type.size()) {
         ImGui::SameLine();
-        ImGui::Text(target_type[type]);
+        ImGui::Text(target_type[img.tmp_poly_type]);
       }
 
       if (ImGui::Button("Save")) {
-        record_pixel_type(img.content, img.pixel_type, type);
-        img.add_poly(type);
+        record_pixel_type(img.content, img.pixel_type, img.tmp_poly_type);
+        img.add_poly(img.tmp_poly_type);
+        img.tmp_poly_type = 0;
 
         Poly p = img.poly_list[img.poly_list.size() - 1];
         cv::Vec3f tmp_color;
