@@ -143,6 +143,7 @@ Img img;
 std::vector<std::string> files;
 
 ImGuiIO *io = nullptr;
+const int line_thick = 5;
 
 void mouse_handler(GLFWwindow *window, int button, int action, int mods) {
   static double ox, oy;
@@ -193,11 +194,13 @@ void keyboard_handler(GLFWwindow *window, int key, int scancode, int action, int
       img.add_poly(type);
 
       Poly p = img.poly_list[img.poly_list.size() - 1];
-
+      cv::Vec3f tmp_color;
       for (int i = 0; i < (int)img.poly_list[img.poly_list.size() - 1].points.size() - 1; i++) {
-        cv::line(img.content, p.points[i], p.points[i + 1], {p.c.a * 255, p.c.b * 255, p.c.c * 255});
+        ImGui::ColorConvertHSVtoRGB(p.c.a, p.c.b, p.c.c, tmp_color[2], tmp_color[1], tmp_color[0]);
+        tmp_color *= 255;
+        cv::line(img.content, p.points[i], p.points[i + 1], tmp_color, line_thick);
       }
-      cv::line(img.content, p.points[0], p.points[p.points.size() - 1], {p.c.a * 255, p.c.b * 255, p.c.c * 255});
+      cv::line(img.content, p.points[0], p.points[p.points.size() - 1], tmp_color, line_thick);
 
       control_points.clear();
     }
@@ -278,7 +281,7 @@ void initialize_color(int num) {
   free_color.clear();
   used_color.clear();
   for (int i = 0; i < num; i++) {
-    free_color.push_back(Color(float(i) / (num + 5), 0.5, 0.5));
+    free_color.push_back(Color(float(i) / (num + 5), 1, 0.8));
   }
 }
 void init_img(const std::string &filename, Img &img) {
@@ -446,7 +449,7 @@ int main(int argc, const char **argv) {
   ImGui_ImplOpenGL3_Init(glsl_version);
 
   // Our state
-  bool show_demo_window = true;
+  bool show_demo_window = false;
   bool show_another_window = false;
   ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
@@ -513,7 +516,7 @@ int main(int argc, const char **argv) {
       }
 
       for (int i = 0; i < (int)control_points.size() - 1; i++) {
-        cv::line(img.content, control_points[i], control_points[i + 1], {255, 255, 255});
+        cv::line(img.content, control_points[i], control_points[i + 1], {255, 255, 255}, line_thick);
       }
 
       GLuint texture;
@@ -530,16 +533,19 @@ int main(int argc, const char **argv) {
                    ImVec2(img.content.cols, img.content.rows));
       ImGui::End();
     }
-    //
+    // 图像窗口
     {
       ImGui::Begin("Img Info");
       const std::string name = "delete##";
       for (int i = 0; i < img.poly_list.size(); i++) {
         ImGui::PushID(i);
+        std::cout << img.poly_list[i].c.a << " " << img.poly_list[i].c.b << " " << img.poly_list[i].c.c << std::endl;
         ImGui::PushStyleColor(ImGuiCol_Button,
-                              (ImVec4)ImColor(img.poly_list[i].c.a, img.poly_list[i].c.b, img.poly_list[i].c.c));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, 0.7f, 0.7f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, 0.8f, 0.8f));
+                              (ImVec4)ImColor::HSV(img.poly_list[i].c.a, img.poly_list[i].c.b, img.poly_list[i].c.c));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(img.poly_list[i].c.a, img.poly_list[i].c.b,
+                                                                           img.poly_list[i].c.c + 0.1));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(img.poly_list[i].c.a, img.poly_list[i].c.b,
+                                                                          img.poly_list[i].c.c + 0.1));
         if (ImGui::Button((name + std::to_string(i)).c_str())) {
           img.delete_poly(i);
           // std::cout << "delete!" << i << std::endl;
@@ -547,16 +553,6 @@ int main(int argc, const char **argv) {
         ImGui::PopStyleColor(3);
         ImGui::PopID();
       }
-      ImGui::End();
-    }
-
-    // 3. Show another simple window.
-    if (show_another_window) {
-      ImGui::Begin("Another Window",
-                   &show_another_window);  // Pass a pointer to our bool variable (the window will have a closing button
-                                           // that will clear the bool when clicked)
-      ImGui::Text("Hello from another window!");
-      if (ImGui::Button("Close Me")) show_another_window = false;
       ImGui::End();
     }
 
