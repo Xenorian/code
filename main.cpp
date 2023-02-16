@@ -306,10 +306,11 @@ void init_img(const std::string &filename, Img &img) {
 
   // read poly-list: json格式
   // type:[[point1,point2...],[]...]
+  img.poly_list.clear();
   Json::Reader reader;
-  std::ifstream ifile("../data/" + std::to_string(img.index) + "poly-list.json", std::ios::binary);
+  std::ifstream ifile("../data/" + std::to_string(img.index) + "poly_list.json", std::ios::binary);
   if (!ifile.is_open()) {
-    std::cout << filename << ": no poly-list " << std::endl;
+    std::cout << filename << ": no poly_list " << std::endl;
     return;
   }
   Json::Value root;
@@ -323,9 +324,10 @@ void init_img(const std::string &filename, Img &img) {
         // for each poly of the same label
         Poly p;
         p.label = atoi(label.c_str());
-        for (int j = 0; j < root[label][i].size(); i++) {
+        for (int j = 0; j < root[label][i].size(); j++) {
           // for each point
-          cv::Point2f point(root[label][i][j]["x"].asFloat(), root[label][i][j]["y"].asFloat());
+          // std::cout << root[label][i][j]["x"] << std::endl;
+          cv::Point2f point(std::stof(root[label][i][j]["x"].asString()), std::stof(root[label][i][j]["y"].asString()));
           p.points.push_back(point);
         }
         img.poly_list.push_back(p);
@@ -345,7 +347,7 @@ void init_img(const std::string &filename, Img &img) {
     free_color.pop_front();
     used_color.push_back(img.poly_list[i].c);
   }
-  for (int j = 0; j < (int)img.poly_list.size() - 1; j++) {
+  for (int j = 0; j < (int)img.poly_list.size(); j++) {
     Poly p = img.poly_list[j];
     for (int i = 0; i < (int)p.points.size() - 1; i++) {
       cv::line(img.content, p.points[i], p.points[i + 1], {p.c.a * 255, p.c.b * 255, p.c.c * 255});
