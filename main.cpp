@@ -276,6 +276,7 @@ void record_pixel_type(const cv::Mat &img, std::vector<int> &res, int type) {
 
 void init_img(const std::string &filename, Img &img) {
   // todo::初始化img
+  initialize_color(color_num);
   img.file = filename;
 
   // read image
@@ -381,6 +382,8 @@ static void glfw_error_callback(int error, const char *description) {
   fprintf(stderr, "GLFW Error %d: %s\n", error, description);
 }
 void initialize_color(int num) {
+  free_color.clear();
+  used_color.clear();
   for (int i = 0; i < num; i++) {
     free_color.push_back(Color(float(i) / (num + 5), 0.5f, 0.5f));
   }

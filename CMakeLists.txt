@@ -5,7 +5,7 @@ include_directories("${PROJECT_SOURCE_DIR}/includes")
 include_directories(${CMAKE_SOURCE_DIR}/includes/json)
 include_directories(${CMAKE_SOURCE_DIR}/includes/imgui)
 include_directories(${CMAKE_SOURCE_DIR}/includes/imgui/backends/)
-link_directories(".")
+link_directories("${PROJECT_SOURCE_DIR}")
 
 find_package(OpenCV REQUIRED)
 find_package(OpenGL REQUIRED)
